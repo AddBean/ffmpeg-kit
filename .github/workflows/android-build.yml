@@ -1,0 +1,70 @@
+name: Build Android
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Android NDK
+      id: setup-ndk
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25c
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          git \
+          pkg-config \
+          yasm \
+          nasm \
+          curl \
+          unzip \
+          tar \
+          autoconf \
+          automake \
+          libtool \
+          cmake
+
+    - name: Apply patches
+      run: |
+        # Apply 16KB page size support to JNI wrapper
+        sed -i 's/APP_LDFLAGS := -Wl,--hash-style=both/APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384/g' ffmpeg-kit/scripts/function-android.sh
+        
+        # Apply 16KB page size support to external libraries
+        sed -i 's/-Wl,--exclude-libs,libunwind.a"/-Wl,--exclude-libs,libunwind.a -Wl,-z,max-page-size=16384"/g' ffmpeg-kit/scripts/function-android.sh
+        
+        # Disable cpu-features tests to avoid network issues with googletest download
+        sed -i 's/\$(android_ndk_cmake) || return 1/\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1/g' ffmpeg-kit/scripts/android/cpu-features.sh
+
+    - name: Build Android
+      working-directory: ffmpeg-kit
+      run: |
+        chmod +x android.sh
+        # Specify NDK root explicitly if needed, though ANDROID_NDK_ROOT is usually handled by environment
+        export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+        ./android.sh
+
+    - name: Upload AAR
+      uses: actions/upload-artifact@v3
+      with:
+        name: ffmpeg-kit-android-aar
+        path: ffmpeg-kit/prebuilt/bundle-android-aar/**/*.aar
