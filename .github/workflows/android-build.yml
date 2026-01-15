@@ -47,13 +47,21 @@ jobs:
     - name: Apply patches
       run: |
         # Apply 16KB page size support to JNI wrapper
-        sed -i 's/APP_LDFLAGS := -Wl,--hash-style=both/APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384/g' scripts/function-android.sh
+        sed -i 's|APP_LDFLAGS := -Wl,--hash-style=both|APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384|g' scripts/function-android.sh
         
         # Apply 16KB page size support to external libraries
-        sed -i 's/-Wl,--exclude-libs,libunwind.a"/-Wl,--exclude-libs,libunwind.a -Wl,-z,max-page-size=16384"/g' scripts/function-android.sh
+        sed -i 's|-Wl,--exclude-libs,libunwind.a"|-Wl,--exclude-libs,libunwind.a -Wl,-z,max-page-size=16384"|g' scripts/function-android.sh
         
         # Disable cpu-features tests to avoid network issues with googletest download
-        sed -i 's/\$(android_ndk_cmake) || return 1/\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1/g' scripts/android/cpu-features.sh
+        # Check if the patch is already applied, if not apply it
+        if ! grep -q "DBUILD_TESTING=OFF" scripts/android/cpu-features.sh; then
+          sed -i 's|\$(android_ndk_cmake) || return 1|\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1|g' scripts/android/cpu-features.sh
+        fi
+        
+        # Verify patches were applied
+        echo "=== Verifying patches ==="
+        grep -n "max-page-size=16384" scripts/function-android.sh | head -2 || echo "Warning: 16KB alignment patch not found"
+        grep -n "DBUILD_TESTING=OFF" scripts/android/cpu-features.sh || echo "Warning: BUILD_TESTING=OFF patch not found"
 
     - name: Build Android
       env:
@@ -62,6 +70,16 @@ jobs:
       run: |
         chmod +x android.sh
         ./android.sh
+
+    - name: Print build logs on failure
+      if: failure()
+      run: |
+        echo "=== Build Log (last 200 lines) ==="
+        tail -200 build.log || echo "build.log not found"
+        echo ""
+        echo "=== Checking if patches were applied ==="
+        grep -n "DBUILD_TESTING=OFF" scripts/android/cpu-features.sh || echo "Patch not found in cpu-features.sh"
+        grep -n "max-page-size=16384" scripts/function-android.sh || echo "16KB alignment patch not found"
 
     - name: Upload AAR
       uses: actions/upload-artifact@v4
