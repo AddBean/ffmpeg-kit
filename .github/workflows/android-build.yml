@@ -45,15 +45,16 @@ jobs:
           cmake
 
     - name: Apply patches
+      working-directory: ffmpeg-kit
       run: |
         # Apply 16KB page size support to JNI wrapper
-        sed -i 's/APP_LDFLAGS := -Wl,--hash-style=both/APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384/g' ffmpeg-kit/scripts/function-android.sh
+        sed -i 's/APP_LDFLAGS := -Wl,--hash-style=both/APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384/g' scripts/function-android.sh
         
         # Apply 16KB page size support to external libraries
-        sed -i 's/-Wl,--exclude-libs,libunwind.a"/-Wl,--exclude-libs,libunwind.a -Wl,-z,max-page-size=16384"/g' ffmpeg-kit/scripts/function-android.sh
+        sed -i 's/-Wl,--exclude-libs,libunwind.a"/-Wl,--exclude-libs,libunwind.a -Wl,-z,max-page-size=16384"/g' scripts/function-android.sh
         
         # Disable cpu-features tests to avoid network issues with googletest download
-        sed -i 's/\$(android_ndk_cmake) || return 1/\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1/g' ffmpeg-kit/scripts/android/cpu-features.sh
+        sed -i 's/\$(android_ndk_cmake) || return 1/\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1/g' scripts/android/cpu-features.sh
 
     - name: Build Android
       working-directory: ffmpeg-kit
