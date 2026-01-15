@@ -45,7 +45,6 @@ jobs:
           cmake
 
     - name: Apply patches
-      working-directory: ffmpeg-kit
       run: |
         # Apply 16KB page size support to JNI wrapper
         sed -i 's/APP_LDFLAGS := -Wl,--hash-style=both/APP_LDFLAGS := -Wl,--hash-style=both -Wl,-z,max-page-size=16384/g' scripts/function-android.sh
@@ -57,7 +56,6 @@ jobs:
         sed -i 's/\$(android_ndk_cmake) || return 1/\$(android_ndk_cmake) -DBUILD_TESTING=OFF || return 1/g' scripts/android/cpu-features.sh
 
     - name: Build Android
-      working-directory: ffmpeg-kit
       env:
         ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
         ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
@@ -69,4 +67,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ffmpeg-kit-android-aar
-        path: ffmpeg-kit/prebuilt/bundle-android-aar/**/*.aar
+        path: prebuilt/bundle-android-aar/**/*.aar
