@@ -23,6 +23,7 @@ on:
       - 'scripts/**'
       - 'tools/**'
       - 'android.sh'
+  workflow_dispatch:
 
 jobs:
   build-main-on-linux:

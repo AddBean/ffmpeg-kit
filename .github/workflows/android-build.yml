@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    env:
-      ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     steps:
     - uses: actions/checkout@v3
@@ -20,6 +17,9 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
 
     - name: Setup Android NDK
       id: setup-ndk
@@ -57,10 +57,11 @@ jobs:
 
     - name: Build Android
       working-directory: ffmpeg-kit
+      env:
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
       run: |
         chmod +x android.sh
-        # Specify NDK root explicitly if needed, though ANDROID_NDK_ROOT is usually handled by environment
-        export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
         ./android.sh
 
     - name: Upload AAR
