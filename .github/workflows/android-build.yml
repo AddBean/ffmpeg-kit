@@ -65,7 +65,7 @@ jobs:
         ./android.sh
 
     - name: Upload AAR
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ffmpeg-kit-android-aar
         path: ffmpeg-kit/prebuilt/bundle-android-aar/**/*.aar
