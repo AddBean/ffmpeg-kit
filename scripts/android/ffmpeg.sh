@@ -284,6 +284,8 @@ for library in {0..61}; do
     libpng)
       CFLAGS+=" $(pkg-config --cflags libpng 2>>"${BASEDIR}"/build.log)"
       LDFLAGS+=" $(pkg-config --libs --static libpng 2>>"${BASEDIR}"/build.log)"
+      # FFmpeg will automatically detect PNG support when libpng is linked
+      # PNG decoder is built-in, no need for --enable-libpng option
       ;;
     libuuid)
       CFLAGS+=" $(pkg-config --cflags uuid 2>>"${BASEDIR}"/build.log)"
