@@ -12,15 +12,15 @@ x86)
   ;;
 x86-64)
   if ! [ -x "$(command -v nasm)" ]; then
-    echo -e "\n(*) nasm command not found\n"
-    return 1
+    echo -e "\n(*) nasm command not found, disabling ASM for x86-64\n"
+    ASM_OPTIONS="--disable-asm"
+  else
+    export AS="$(command -v nasm)"
+
+    # WORKAROUND TO ENABLE X86 ASM
+    # https://github.com/android-ndk/ndk/issues/693
+    export CFLAGS="${CFLAGS} -mno-stackrealign"
   fi
-
-  export AS="$(command -v nasm)"
-
-  # WORKAROUND TO ENABLE X86 ASM
-  # https://github.com/android-ndk/ndk/issues/693
-  export CFLAGS="${CFLAGS} -mno-stackrealign"
   ;;
 esac
 if [[ -n ${FFMPEG_KIT_DEBUG} ]]; then
@@ -43,7 +43,8 @@ fi
   --disable-cli \
   ${ASM_OPTIONS} \
   ${DEBUG_OPTIONS} \
-  --host="${HOST}" || return 1
+  --host="${HOST}" \
+  LDFLAGS="${LDFLAGS}" || return 1
 
 make -j$(get_cpu_count) || return 1
 
