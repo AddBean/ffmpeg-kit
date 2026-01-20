@@ -25,6 +25,10 @@ if [[ ! -f "${BASEDIR}"/src/"${LIB_NAME}"/configure ]] || [[ ${RECONF_libpng} -e
   autoreconf_library "${LIB_NAME}" 1>>"${BASEDIR}"/build.log 2>&1 || return 1
 fi
 
+# Note: 16KB alignment for Android 14+ is handled by LDFLAGS from get_ldflags()
+# which includes -Wl,-z,max-page-size=16384. This flag will be applied when
+# libpng static library is linked into the final FFmpeg shared library.
+
 ./configure \
   --prefix="${LIB_INSTALL_PREFIX}" \
   --with-pic \
