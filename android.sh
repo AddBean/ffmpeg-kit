@@ -28,7 +28,7 @@ echo -e "\nINFO: Using Android NDK v${DETECTED_NDK_VERSION} provided at ${ANDROI
 echo -e "INFO: Build options: $*\n" 1>>"${BASEDIR}"/build.log 2>&1
 
 # SET DEFAULT BUILD OPTIONS
-export GPL_ENABLED="no"
+export GPL_ENABLED="yes"
 DISPLAY_HELP=""
 BUILD_FULL=""
 BUILD_TYPE_ID=""

@@ -14,6 +14,7 @@ enable_default_android_architectures() {
 
 enable_default_android_libraries() {
   ENABLED_LIBRARIES[LIBRARY_CPU_FEATURES]=1
+  ENABLED_LIBRARIES[LIBRARY_X264]=1
 }
 
 get_ffmpeg_kit_version() {
